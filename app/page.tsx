@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
+
 const Check = ({ className }: { className?: string }) => (
   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polyline points="20 6 9 17 4 12"/></svg>
 );
@@ -18,8 +19,6 @@ const AlertCircle = ({ className }: { className?: string }) => (
   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>
 );
 
-<<<<<<< HEAD
-=======
 const GripVertical = ({ className }: { className?: string }) => (
   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
     <circle cx="9" cy="12" r="1"/>
@@ -31,16 +30,12 @@ const GripVertical = ({ className }: { className?: string }) => (
   </svg>
 );
 
->>>>>>> origin/aayush
 type Todo = {
   id: number;
   title: string;
   is_completed: boolean;
   created_at: string;
-<<<<<<< HEAD
-=======
   position?: number;
->>>>>>> origin/aayush
 };
 
 export default function Home() {
@@ -48,12 +43,9 @@ export default function Home() {
   const [newTask, setNewTask] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-<<<<<<< HEAD
-=======
   const [hasPositionColumn, setHasPositionColumn] = useState(true);
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [isDragging, setIsDragging] = useState(false);
->>>>>>> origin/aayush
 
   useEffect(() => {
     fetchTodos();
@@ -62,17 +54,8 @@ export default function Home() {
   const fetchTodos = async () => {
     try {
       setLoading(true);
-<<<<<<< HEAD
-      const { data, error } = await supabase
-        .from("todos")
-        .select("*")
-        .order("created_at", { ascending: false });
-
-      if (error) throw error;
-      setTodos(data || []);
-=======
       setError("");
-      
+
       const { data, error } = await supabase
         .from("todos")
         .select("*")
@@ -94,7 +77,6 @@ export default function Home() {
       } else {
         setTodos(data || []);
       }
->>>>>>> origin/aayush
     } catch (err: any) {
       setError(err.message || "Failed to fetch todos. Did you set up Supabase?");
     } finally {
@@ -107,13 +89,8 @@ export default function Home() {
     if (!newTask.trim()) return;
 
     try {
-<<<<<<< HEAD
-      const { data, error } = await supabase
-        .from("todos")
-        .insert([{ title: newTask }])
-=======
       let insertPayload: Record<string, any> = { title: newTask };
-      
+
       if (hasPositionColumn) {
         const minPosition = todos.length > 0
           ? Math.min(...todos.map(t => t.position ?? 0))
@@ -124,7 +101,6 @@ export default function Home() {
       const { data, error } = await supabase
         .from("todos")
         .insert([insertPayload])
->>>>>>> origin/aayush
         .select()
         .single();
 
@@ -140,7 +116,6 @@ export default function Home() {
 
   const toggleComplete = async (id: number, currentStatus: boolean) => {
     try {
-      // Optimistic update
       setTodos(todos.map(t => t.id === id ? { ...t, is_completed: !currentStatus } : t));
 
       const { error } = await supabase
@@ -149,7 +124,6 @@ export default function Home() {
         .eq("id", id);
 
       if (error) {
-        // Revert on error
         setTodos(todos.map(t => t.id === id ? { ...t, is_completed: currentStatus } : t));
         throw error;
       }
@@ -160,7 +134,6 @@ export default function Home() {
 
   const deleteTodo = async (id: number) => {
     try {
-      // Optimistic update
       const previousTodos = [...todos];
       setTodos(todos.filter(t => t.id !== id));
 
@@ -170,7 +143,6 @@ export default function Home() {
         .eq("id", id);
 
       if (error) {
-        // Revert on error
         setTodos(previousTodos);
         throw error;
       }
@@ -179,8 +151,6 @@ export default function Home() {
     }
   };
 
-<<<<<<< HEAD
-=======
   const saveNewOrder = async (currentTodos: Todo[]) => {
     try {
       const updates = currentTodos.map((todo, index) => ({
@@ -234,7 +204,6 @@ export default function Home() {
     saveNewOrder(todos);
   };
 
->>>>>>> origin/aayush
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-black py-16 px-4 font-sans selection:bg-indigo-500/30">
       <div className="max-w-xl mx-auto">
@@ -254,8 +223,6 @@ export default function Home() {
           </div>
         )}
 
-<<<<<<< HEAD
-=======
         {!hasPositionColumn && (
           <div className="mb-6 p-4 rounded-xl bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/30 text-amber-800 dark:text-amber-300 text-left">
             <h3 className="font-medium text-sm mb-1">Custom ordering is disabled</h3>
@@ -268,7 +235,6 @@ export default function Home() {
           </div>
         )}
 
->>>>>>> origin/aayush
         <form onSubmit={addTodo} className="mb-8 relative">
           <input
             type="text"
@@ -296,11 +262,6 @@ export default function Home() {
               <p className="text-zinc-500 dark:text-zinc-400">No tasks yet. Add one above!</p>
             </div>
           ) : (
-<<<<<<< HEAD
-            todos.map((todo) => (
-              <div
-                key={todo.id}
-=======
             todos.map((todo, index) => (
               <div
                 key={todo.id}
@@ -309,15 +270,10 @@ export default function Home() {
                 onDragEnter={(e) => handleDragEnter(e, index)}
                 onDragEnd={handleDragEnd}
                 onDragOver={handleDragOver}
->>>>>>> origin/aayush
                 className={`group flex items-center gap-4 p-4 bg-white dark:bg-zinc-900 rounded-2xl border transition-all duration-200 hover:shadow-md ${
                   todo.is_completed
                     ? "border-transparent opacity-60"
                     : "border-zinc-100 dark:border-zinc-800"
-<<<<<<< HEAD
-                }`}
-              >
-=======
                 } ${
                   draggedIndex === index
                     ? "opacity-40 border-indigo-500 scale-[0.98] shadow-inner"
@@ -334,7 +290,6 @@ export default function Home() {
                   </div>
                 )}
 
->>>>>>> origin/aayush
                 <button
                   onClick={() => toggleComplete(todo.id, todo.is_completed)}
                   className={`flex-shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-200 ${
@@ -345,7 +300,7 @@ export default function Home() {
                 >
                   <Check className="w-3.5 h-3.5 stroke-[3]" />
                 </button>
-                
+
                 <span
                   className={`flex-1 text-base transition-all duration-200 ${
                     todo.is_completed
