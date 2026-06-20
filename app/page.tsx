@@ -18,11 +18,29 @@ const AlertCircle = ({ className }: { className?: string }) => (
   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>
 );
 
+<<<<<<< HEAD
+=======
+const GripVertical = ({ className }: { className?: string }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <circle cx="9" cy="12" r="1"/>
+    <circle cx="9" cy="5" r="1"/>
+    <circle cx="9" cy="19" r="1"/>
+    <circle cx="15" cy="12" r="1"/>
+    <circle cx="15" cy="5" r="1"/>
+    <circle cx="15" cy="19" r="1"/>
+  </svg>
+);
+
+>>>>>>> origin/aayush
 type Todo = {
   id: number;
   title: string;
   is_completed: boolean;
   created_at: string;
+<<<<<<< HEAD
+=======
+  position?: number;
+>>>>>>> origin/aayush
 };
 
 export default function Home() {
@@ -30,6 +48,12 @@ export default function Home() {
   const [newTask, setNewTask] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+<<<<<<< HEAD
+=======
+  const [hasPositionColumn, setHasPositionColumn] = useState(true);
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
+>>>>>>> origin/aayush
 
   useEffect(() => {
     fetchTodos();
@@ -38,6 +62,7 @@ export default function Home() {
   const fetchTodos = async () => {
     try {
       setLoading(true);
+<<<<<<< HEAD
       const { data, error } = await supabase
         .from("todos")
         .select("*")
@@ -45,6 +70,31 @@ export default function Home() {
 
       if (error) throw error;
       setTodos(data || []);
+=======
+      setError("");
+      
+      const { data, error } = await supabase
+        .from("todos")
+        .select("*")
+        .order("position", { ascending: true })
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        if (error.code === "42703" || error.message?.includes("position")) {
+          setHasPositionColumn(false);
+          const fallback = await supabase
+            .from("todos")
+            .select("*")
+            .order("created_at", { ascending: false });
+          if (fallback.error) throw fallback.error;
+          setTodos(fallback.data || []);
+        } else {
+          throw error;
+        }
+      } else {
+        setTodos(data || []);
+      }
+>>>>>>> origin/aayush
     } catch (err: any) {
       setError(err.message || "Failed to fetch todos. Did you set up Supabase?");
     } finally {
@@ -57,9 +107,24 @@ export default function Home() {
     if (!newTask.trim()) return;
 
     try {
+<<<<<<< HEAD
       const { data, error } = await supabase
         .from("todos")
         .insert([{ title: newTask }])
+=======
+      let insertPayload: Record<string, any> = { title: newTask };
+      
+      if (hasPositionColumn) {
+        const minPosition = todos.length > 0
+          ? Math.min(...todos.map(t => t.position ?? 0))
+          : 0;
+        insertPayload.position = minPosition - 1000;
+      }
+
+      const { data, error } = await supabase
+        .from("todos")
+        .insert([insertPayload])
+>>>>>>> origin/aayush
         .select()
         .single();
 
@@ -114,6 +179,62 @@ export default function Home() {
     }
   };
 
+<<<<<<< HEAD
+=======
+  const saveNewOrder = async (currentTodos: Todo[]) => {
+    try {
+      const updates = currentTodos.map((todo, index) => ({
+        id: todo.id,
+        title: todo.title,
+        is_completed: todo.is_completed,
+        created_at: todo.created_at,
+        position: index,
+      }));
+
+      const { error } = await supabase
+        .from("todos")
+        .upsert(updates);
+
+      if (error) throw error;
+    } catch (err: any) {
+      console.error("Failed to save order:", err);
+      setError(err.message || "Failed to save the new order to database.");
+    }
+  };
+
+  const handleDragStart = (e: React.DragEvent, index: number) => {
+    const target = e.target as HTMLElement;
+    if (!target.closest("[data-drag-handle]")) {
+      e.preventDefault();
+      return;
+    }
+    setDraggedIndex(index);
+    setIsDragging(true);
+    e.dataTransfer.effectAllowed = "move";
+  };
+
+  const handleDragEnter = (e: React.DragEvent, index: number) => {
+    if (draggedIndex === null || draggedIndex === index) return;
+
+    const updatedTodos = [...todos];
+    const [moved] = updatedTodos.splice(draggedIndex, 1);
+    updatedTodos.splice(index, 0, moved);
+
+    setTodos(updatedTodos);
+    setDraggedIndex(index);
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+  };
+
+  const handleDragEnd = () => {
+    setDraggedIndex(null);
+    setIsDragging(false);
+    saveNewOrder(todos);
+  };
+
+>>>>>>> origin/aayush
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-black py-16 px-4 font-sans selection:bg-indigo-500/30">
       <div className="max-w-xl mx-auto">
@@ -133,6 +254,21 @@ export default function Home() {
           </div>
         )}
 
+<<<<<<< HEAD
+=======
+        {!hasPositionColumn && (
+          <div className="mb-6 p-4 rounded-xl bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/30 text-amber-800 dark:text-amber-300 text-left">
+            <h3 className="font-medium text-sm mb-1">Custom ordering is disabled</h3>
+            <p className="text-xs opacity-90">
+              To enable manual drag-and-drop task sorting, please run the SQL query below in your Supabase SQL Editor:
+            </p>
+            <pre className="mt-2 p-2.5 bg-amber-100 dark:bg-amber-950/40 rounded-lg text-[10.5px] font-mono overflow-x-auto select-all border border-amber-200/50 dark:border-amber-900/50">
+              ALTER TABLE todos ADD COLUMN position DOUBLE PRECISION NOT NULL DEFAULT 0;
+            </pre>
+          </div>
+        )}
+
+>>>>>>> origin/aayush
         <form onSubmit={addTodo} className="mb-8 relative">
           <input
             type="text"
@@ -160,15 +296,45 @@ export default function Home() {
               <p className="text-zinc-500 dark:text-zinc-400">No tasks yet. Add one above!</p>
             </div>
           ) : (
+<<<<<<< HEAD
             todos.map((todo) => (
               <div
                 key={todo.id}
+=======
+            todos.map((todo, index) => (
+              <div
+                key={todo.id}
+                draggable={hasPositionColumn}
+                onDragStart={(e) => handleDragStart(e, index)}
+                onDragEnter={(e) => handleDragEnter(e, index)}
+                onDragEnd={handleDragEnd}
+                onDragOver={handleDragOver}
+>>>>>>> origin/aayush
                 className={`group flex items-center gap-4 p-4 bg-white dark:bg-zinc-900 rounded-2xl border transition-all duration-200 hover:shadow-md ${
                   todo.is_completed
                     ? "border-transparent opacity-60"
                     : "border-zinc-100 dark:border-zinc-800"
+<<<<<<< HEAD
                 }`}
               >
+=======
+                } ${
+                  draggedIndex === index
+                    ? "opacity-40 border-indigo-500 scale-[0.98] shadow-inner"
+                    : ""
+                }`}
+              >
+                {hasPositionColumn && (
+                  <div
+                    data-drag-handle
+                    className="cursor-grab active:cursor-grabbing p-1 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 rounded-lg transition-colors flex-shrink-0"
+                    title="Drag to reorder"
+                  >
+                    <GripVertical className="w-4 h-4" />
+                  </div>
+                )}
+
+>>>>>>> origin/aayush
                 <button
                   onClick={() => toggleComplete(todo.id, todo.is_completed)}
                   className={`flex-shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-200 ${

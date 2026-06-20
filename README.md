@@ -34,3 +34,19 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+<<<<<<< HEAD
+=======
+
+## Database Setup for Custom Task Ordering
+
+To support custom task ordering, we need to add a `position` column to the `todos` table in your Supabase database.
+
+Please run the following SQL command in your **Supabase SQL Editor**:
+
+```sql
+ALTER TABLE todos ADD COLUMN position DOUBLE PRECISION NOT NULL DEFAULT 0;
+```
+
+Once added, manual drag-and-drop ordering will automatically activate in the application!
+
+>>>>>>> origin/aayush
