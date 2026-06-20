@@ -18,16 +18,21 @@ const AlertCircle = ({ className }: { className?: string }) => (
   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>
 );
 
+type Category = "Work" | "Personal" | "Urgent";
+
 type Todo = {
   id: number;
   title: string;
   is_completed: boolean;
   created_at: string;
+  category?: Category | null;
 };
 
 export default function Home() {
   const [todos, setTodos] = useState<Todo[]>([]);
   const [newTask, setNewTask] = useState("");
+  const [newTaskCategory, setNewTaskCategory] = useState<Category | null>(null);
+  const [filter, setFilter] = useState<Category | "All">("All");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -59,7 +64,7 @@ export default function Home() {
     try {
       const { data, error } = await supabase
         .from("todos")
-        .insert([{ title: newTask }])
+        .insert([{ title: newTask, category: newTaskCategory }])
         .select()
         .single();
 
@@ -67,6 +72,7 @@ export default function Home() {
       if (data) {
         setTodos([data, ...todos]);
         setNewTask("");
+        setNewTaskCategory(null);
       }
     } catch (err: any) {
       setError(err.message || "Failed to add todo");
@@ -134,21 +140,60 @@ export default function Home() {
         )}
 
         <form onSubmit={addTodo} className="mb-8 relative">
-          <input
-            type="text"
-            value={newTask}
-            onChange={(e) => setNewTask(e.target.value)}
-            placeholder="Add a new task..."
-            className="w-full bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl px-6 py-4 pr-16 text-zinc-900 dark:text-zinc-50 placeholder-zinc-400 dark:placeholder-zinc-500 shadow-sm outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all duration-200"
-          />
-          <button
-            type="submit"
-            disabled={!newTask.trim()}
-            className="absolute right-2 top-2 bottom-2 aspect-square flex items-center justify-center bg-indigo-500 hover:bg-indigo-600 disabled:opacity-50 disabled:hover:bg-indigo-500 text-white rounded-xl transition-colors duration-200"
-          >
-            <Plus className="w-5 h-5" />
-          </button>
+          <div className="relative">
+            <input
+              type="text"
+              value={newTask}
+              onChange={(e) => setNewTask(e.target.value)}
+              placeholder="Add a new task..."
+              className="w-full bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl px-6 py-4 pr-16 text-zinc-900 dark:text-zinc-50 placeholder-zinc-400 dark:placeholder-zinc-500 shadow-sm outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all duration-200"
+            />
+            <button
+              type="submit"
+              disabled={!newTask.trim()}
+              className="absolute right-2 top-2 bottom-2 aspect-square flex items-center justify-center bg-indigo-500 hover:bg-indigo-600 disabled:opacity-50 disabled:hover:bg-indigo-500 text-white rounded-xl transition-colors duration-200"
+            >
+              <Plus className="w-5 h-5" />
+            </button>
+          </div>
+          <div className="flex gap-2 mt-3 overflow-x-auto pb-1">
+            {(["Work", "Personal", "Urgent"] as Category[]).map((cat) => (
+              <button
+                key={cat}
+                type="button"
+                onClick={() => setNewTaskCategory(newTaskCategory === cat ? null : cat)}
+                className={`px-3 py-1.5 rounded-xl text-sm font-medium transition-colors border whitespace-nowrap ${
+                  newTaskCategory === cat 
+                    ? cat === "Work" ? "bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-500/20 dark:text-blue-300 dark:border-blue-500/30"
+                    : cat === "Personal" ? "bg-green-100 text-green-700 border-green-200 dark:bg-green-500/20 dark:text-green-300 dark:border-green-500/30"
+                    : "bg-red-100 text-red-700 border-red-200 dark:bg-red-500/20 dark:text-red-300 dark:border-red-500/30"
+                    : "bg-white dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800"
+                }`}
+              >
+                {cat === "Work" && "🔵 "}
+                {cat === "Personal" && "🟢 "}
+                {cat === "Urgent" && "🔴 "}
+                {cat}
+              </button>
+            ))}
+          </div>
         </form>
+
+        <div className="mb-6 flex gap-2 overflow-x-auto pb-2">
+          {(["All", "Work", "Personal", "Urgent"] as const).map((f) => (
+            <button
+              key={f}
+              onClick={() => setFilter(f)}
+              className={`px-4 py-2 rounded-xl text-sm font-medium transition-all whitespace-nowrap ${
+                filter === f
+                  ? "bg-zinc-900 text-white dark:bg-white dark:text-zinc-900 shadow-sm"
+                  : "bg-white dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800"
+              }`}
+            >
+              {f}
+            </button>
+          ))}
+        </div>
 
         <div className="space-y-3">
           {loading ? (
@@ -159,8 +204,12 @@ export default function Home() {
             <div className="text-center py-16 bg-white/50 dark:bg-zinc-900/50 rounded-3xl border border-zinc-100 dark:border-zinc-800 border-dashed">
               <p className="text-zinc-500 dark:text-zinc-400">No tasks yet. Add one above!</p>
             </div>
+          ) : (todos.filter((t) => filter === "All" || t.category === filter).length === 0) ? (
+            <div className="text-center py-16 bg-white/50 dark:bg-zinc-900/50 rounded-3xl border border-zinc-100 dark:border-zinc-800 border-dashed">
+              <p className="text-zinc-500 dark:text-zinc-400">No tasks found for this category.</p>
+            </div>
           ) : (
-            todos.map((todo) => (
+            todos.filter((t) => filter === "All" || t.category === filter).map((todo) => (
               <div
                 key={todo.id}
                 className={`group flex items-center gap-4 p-4 bg-white dark:bg-zinc-900 rounded-2xl border transition-all duration-200 hover:shadow-md ${
@@ -199,6 +248,23 @@ export default function Home() {
                     })}
                   </span>
                 </div>
+
+                {todo.category && (
+                  <span
+                    className={`flex-shrink-0 px-2.5 py-1 rounded-full text-xs font-medium border ${
+                      todo.category === "Work"
+                        ? "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-500/10 dark:text-blue-400 dark:border-blue-500/20"
+                        : todo.category === "Personal"
+                        ? "bg-green-50 text-green-700 border-green-200 dark:bg-green-500/10 dark:text-green-400 dark:border-green-500/20"
+                        : "bg-red-50 text-red-700 border-red-200 dark:bg-red-500/10 dark:text-red-400 dark:border-red-500/20"
+                    }`}
+                  >
+                    {todo.category === "Work" && "🔵 "}
+                    {todo.category === "Personal" && "🟢 "}
+                    {todo.category === "Urgent" && "🔴 "}
+                    {todo.category}
+                  </span>
+                )}
 
                 <button
                   onClick={() => deleteTodo(todo.id)}
