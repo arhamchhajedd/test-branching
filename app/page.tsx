@@ -180,15 +180,25 @@ export default function Home() {
                   <Check className="w-3.5 h-3.5 stroke-[3]" />
                 </button>
                 
-                <span
-                  className={`flex-1 text-base transition-all duration-200 ${
-                    todo.is_completed
-                      ? "text-zinc-400 dark:text-zinc-500 line-through decoration-zinc-300 dark:decoration-zinc-600"
-                      : "text-zinc-700 dark:text-zinc-200"
-                  }`}
-                >
-                  {todo.title}
-                </span>
+                <div className="flex-1 flex flex-col min-w-0">
+                  <span
+                    className={`text-base transition-all duration-200 ${
+                      todo.is_completed
+                        ? "text-zinc-400 dark:text-zinc-500 line-through decoration-zinc-300 dark:decoration-zinc-600"
+                        : "text-zinc-700 dark:text-zinc-200"
+                    }`}
+                  >
+                    {todo.title}
+                  </span>
+                  <span className="text-xs text-zinc-400 dark:text-zinc-500 mt-1">
+                    {new Date(todo.created_at).toLocaleString(undefined, {
+                      month: 'short',
+                      day: 'numeric',
+                      hour: 'numeric',
+                      minute: '2-digit'
+                    })}
+                  </span>
+                </div>
 
                 <button
                   onClick={() => deleteTodo(todo.id)}
